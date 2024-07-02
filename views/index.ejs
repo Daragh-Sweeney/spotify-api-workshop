@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: black;
+
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      position: absolute;
+      top: 20%;
+      width: 100%;
+      text-align: center;
+      font-size: 2rem;
+      z-index: 1;
+    }
+
+    #login-button {
+      display: inline-block;
+      padding: 15px 25px;
+      font-size: 1.5rem;
+      color: white;
+      background-color: #1DB954;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      z-index: 1;
+    }
+
+    #login-button:hover {
+      background-color: #17a04a;
+    }
+
+    #three-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <h1>Welcome to the Universe of Music Project</h1>
+  <a href="/authorize" id="login-button">Login with Spotify</a>
+  <canvas id="three-canvas"></canvas>
+
+  <script>
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas') });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const starGeometry = new THREE.BufferGeometry();
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+
+    const starVertices = [];
+    for (let i = 0; i < 1000; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      starVertices.push(x, y, z);
+    }
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+
+    camera.position.z = 1;
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      stars.rotation.x += 0.0005;
+      stars.rotation.y += 0.0005;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

@@ -1,20 +1,32 @@
-import express from "express";
-import fetch from "node-fetch";
+import express from 'express';
+import fetch from 'node-fetch';
+import session from 'express-session';
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.set("views", "./views");
-app.set("view engine", "pug");
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
 
-app.use(express.static("public"));
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
 
-const redirect_uri = "http://localhost:3000/callback";
-const client_id = "";
-const client_secret = "";
+app.use(express.static(__dirname));
 
-global.access_token;
+const redirect_uri = `http://localhost:3000/callback`;
+const client_id = "dfa9b1026a55431a82843e90bd11c2b9";
+const client_secret = "4dcedf731869434c86ea3efdf58b7aa7";
 
-app.get("/", function (req, res) {
+app.get("/", (req, res) => {
   res.render("index");
 });
 
@@ -26,9 +38,7 @@ app.get("/authorize", (req, res) => {
     redirect_uri: redirect_uri,
   });
 
-  res.redirect(
-    "https://accounts.spotify.com/authorize?" + auth_query_parameters.toString()
-  );
+  res.redirect("https://accounts.spotify.com/authorize?" + auth_query_parameters.toString());
 });
 
 app.get("/callback", async (req, res) => {
@@ -45,23 +55,21 @@ app.get("/callback", async (req, res) => {
     body: body,
     headers: {
       "Content-type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        Buffer.from(client_id + ":" + client_secret).toString("base64"),
+      Authorization: "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64"),
     },
   });
 
   const data = await response.json();
-  global.access_token = data.access_token;
+  req.session.access_token = data.access_token;
 
   res.redirect("/dashboard");
 });
 
-async function getData(endpoint) {
+async function getData(endpoint, access_token) {
   const response = await fetch("https://api.spotify.com/v1" + endpoint, {
     method: "get",
     headers: {
-      Authorization: "Bearer " + global.access_token,
+      Authorization: "Bearer " + access_token,
     },
   });
 
@@ -70,28 +78,58 @@ async function getData(endpoint) {
 }
 
 app.get("/dashboard", async (req, res) => {
-  const userInfo = await getData("/me");
-  const tracks = await getData("/me/tracks?limit=10");
+  const access_token = req.session.access_token;
+  if (!access_token) {
+    return res.redirect('/');
+  }
+
+  const userInfo = await getData("/me", access_token);
+  const tracks = await getData("/me/tracks?limit=50", access_token);
 
   res.render("dashboard", { user: userInfo, tracks: tracks.items });
 });
 
-app.get("/recommendations", async (req, res) => {
-  const artist_id = req.query.artist;
-  const track_id = req.query.track;
+app.get('/getGenre', (req, res) => {
+  const { previewUrl } = req.query;
 
-  const params = new URLSearchParams({
-    seed_artist: artist_id,
-    seed_genres: "rock",
-    seed_tracks: track_id,
+  if (!previewUrl) {
+    return res.status(400).send('Missing previewUrl parameter');
+  }
+
+  console.log(`Received previewUrl: ${previewUrl}`);
+
+  const pythonPath = '/Library/Frameworks/Python.framework/Versions/3.10/bin/python3';  // Update to your correct Python path
+  const scriptPath = path.join(__dirname, 'getGenre.py');
+  const pythonProcess = spawn(pythonPath, [scriptPath, previewUrl]);
+
+  let pythonOutput = '';
+
+  pythonProcess.stdout.on('data', (data) => {
+    pythonOutput += data.toString();
   });
 
-  const data = await getData("/recommendations?" + params);
-  res.render("recommendation", { tracks: data.tracks });
+  pythonProcess.stdout.on('end', () => {
+    console.log(`Python script output: ${pythonOutput}`);
+    res.send(pythonOutput);
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    console.error(`Error from Python script: ${data}`);
+    res.status(500).send(`Error from Python script: ${data}`);
+  });
 });
 
-let listener = app.listen(3000, function () {
-  console.log(
-    "Your app is listening on http://localhost:" + listener.address().port
-  );
+app.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Error destroying session:', err);
+      return res.redirect('/');
+    }
+    res.clearCookie('connect.sid', { path: '/' });
+    res.redirect('/');
+  });
+});
+
+let listener = app.listen(3000, 'localhost', function () {
+  console.log("Your app is listening on http://localhost:" + listener.address().port);
 });
