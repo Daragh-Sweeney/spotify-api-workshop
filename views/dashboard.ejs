@@ -12,6 +12,10 @@
   <script src="https://unpkg.com/wavesurfer.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
+  <script type="module">
+  import { createNoise2D } from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.1/+esm'
+  window.createNoise2D = createNoise2D;
+  </script>
 </head>
 <body>
   <div id="three-container">

@@ -99,7 +99,7 @@ app.get('/getGenre', (req, res) => {
   console.log(`Received previewUrl: ${previewUrl}`);
 
   const pythonPath = '/Library/Frameworks/Python.framework/Versions/3.10/bin/python3';  // Update to your correct Python path
-  const scriptPath = path.join(__dirname, 'getGenre.py');
+  const scriptPath = path.join(__dirname, '/models/getGenre.py');
   const pythonProcess = spawn(pythonPath, [scriptPath, previewUrl]);
 
   let pythonOutput = '';
