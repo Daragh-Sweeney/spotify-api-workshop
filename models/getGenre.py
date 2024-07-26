@@ -61,7 +61,7 @@ try:
     urllib.request.urlretrieve(mp3_url, 'models/tempMP3Files/'+base_url+".mp3")
     new_spectrogram, tempo, rms = getSpectogram('models/tempMP3Files/'+base_url+".mp3")
 
-    loaded_model = load_model('models/genre_model.h5', compile=False)
+    loaded_model = load_model('models/genre_model1.h5', compile=False)
 
 
     prediction = loaded_model.predict(np.expand_dims(new_spectrogram, axis=0), verbose=None)
