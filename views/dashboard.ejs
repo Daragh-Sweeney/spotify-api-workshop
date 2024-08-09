@@ -9,6 +9,8 @@
   <link href="/style/style.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+
   <script src="https://unpkg.com/wavesurfer.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
 
@@ -21,11 +23,11 @@
 </head>
 <body>
   <div id="three-container">
-    <div id="welcome-message">Welcome <%= user.display_name %> to your Universe of music</div>
+    <div id="welcome-message">Welcome <%= user.display_name %>, Loading Universe </div>
     <div id="display-box">
 
       <div class="header-content">
-        <img src="<%= user.images[0].url %>" class="circular_image" alt="Profile Image">
+
         <a href="/logout" class="logout-button">Logout</a>
       </div>
 
@@ -37,9 +39,10 @@
       </div>
       <div id="waveform"></div>
     </div>
+
     <canvas id="three-canvas" style="position: absolute; top: 0; left: 0; z-index: 0;"></canvas>
   </div>
   <script>const tracks = <%- JSON.stringify(tracks) %>;</script>
-  <script src="/style/script.js"></script>
+  <script type="module" src="/style/script.js"></script>
 </body>
 </html>

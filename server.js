@@ -4,6 +4,7 @@ import session from 'express-session';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,22 @@ app.set("view engine", "ejs");
 
 app.use(express.static(__dirname));
 
-const redirect_uri = `http://localhost:3000/callback`;
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const devName in interfaces) {
+    const iface = interfaces[devName];
+    for (let i = 0; i < iface.length; i++) {
+      const alias = iface[i];
+      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
+        return alias.address;
+      }
+    }
+  }
+  return '0.0.0.0';
+}
+
+const localIP = getLocalIP();
+const redirect_uri = `http://${localIP}:3000/callback`;
 const client_id = "dfa9b1026a55431a82843e90bd11c2b9";
 const client_secret = "4dcedf731869434c86ea3efdf58b7aa7";
 
@@ -96,7 +112,7 @@ app.get('/getGenre', (req, res) => {
     return res.status(400).send('Missing previewUrl parameter');
   }
 
-  console.log(`Received previewUrl: ${previewUrl}`);
+  //console.log(`Received previewUrl: ${previewUrl}`);
 
   const pythonPath = '/Library/Frameworks/Python.framework/Versions/3.10/bin/python3';  // Update to your correct Python path
   const scriptPath = path.join(__dirname, '/models/getGenre.py');
@@ -130,6 +146,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-let listener = app.listen(3000, 'localhost', function () {
-  console.log("Your app is listening on http://localhost:" + listener.address().port);
+let listener = app.listen(3000, '0.0.0.0', function () {
+  console.log(`Your app is listening on http://${localIP}:${listener.address().port}`);
+  console.log("To access from other devices on the same network, use this address");
 });
