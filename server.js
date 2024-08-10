@@ -39,8 +39,8 @@ function getLocalIP() {
 
 const localIP = getLocalIP();
 const redirect_uri = `http://${localIP}:3000/callback`;
-const client_id = "dfa9b1026a55431a82843e90bd11c2b9";
-const client_secret = "4dcedf731869434c86ea3efdf58b7aa7";
+const client_id = "";
+const client_secret = "";
 
 app.get("/", (req, res) => {
   res.render("index");
