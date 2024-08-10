@@ -38,7 +38,7 @@ export function initScene() {
 
 
      const shootingStars = [];
-     for (let i = 0; i < 50; i++) {  // Increased from 20 to 50
+     for (let i = 0; i < 50; i++) {
          const star = createShootingStar();
          scene.add(star);
          shootingStars.push(star);
